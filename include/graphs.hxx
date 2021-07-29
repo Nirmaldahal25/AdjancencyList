@@ -21,28 +21,25 @@ void addEdge(T&& vertex1, T&& vertex2)
 void removeVertex(const T& vertex)
 {
     auto key = this->vertices.erase(vertex);
-    if(key != vertices.end()) return;
-    else{
-        auto iter = graph.equal_range(vertex);
+    auto iter = graph.equal_range(vertex);
+    for(auto it = iter.first; it != iter.second;)
+    {
+        it = graph.erase(it);
+    }
+    for(auto i: vertices)
+    {
+        iter= this->graph.equal_range(i);
         for(auto it = iter.first; it != iter.second;)
         {
-            it = graph.erase(it);
-            if(it != graph.end()) it++;
-        }
-        for(auto i: vertices)
-        {
-            auto map = this->graph.equal_range(i);
-            for(auto it = map.first; it != map.second;)
+            if(it->first == vertex || it->second == vertex)
             {
-                if(it->first == vertex || it->second == vertex)
-                {
-                    it = this->graph.erase(it);
-                    continue;
-                }
-                it++;
+                it = this->graph.erase(it);
+                continue;
             }
-        }   
-    }
+            it++;
+        }
+    }   
+    
 }
 
 void removeEdge(const T& vertex1, const T& vertex2)
@@ -59,16 +56,16 @@ void removeEdge(const T& vertex1, const T& vertex2)
     }
 }
 
-template<typename V>
-void neighbours(const T& vertex, std::set<V>& container)
+
+void neighbours(const T& vertex, std::set<T>& container)
 {
     for(const auto& it : graph)
     {
-        if(it->second == vertex)
+        if(it.second == vertex)
         {
             container.insert(it.first);
         }
-        if(it->first == vertex )
+        if(it.first == vertex )
         {
             container.insert(it.second);
         }
@@ -123,10 +120,16 @@ int outDegree(const T& vertex) const
 
 bool isNeighbour(const T& vertex1, const T& vertex2) const
 {
-    if(this->graph.find(std::make_pair(vertex1, vertex2)) != this->graph.end() || 
-    this->graph.find(std::make_pair(vertex2,vertex1)  != this->graph.end()));
+    auto map = this->graph.equal_range(vertex1);
+    for(auto it = map.first; it!=map.second; it++)
     {
-        return true;
+        if(it->second == vertex2) return true;   
+    }
+
+    map = this->graph.equal_range(vertex2);
+    for(auto it = map.first; it!=map.second; it++)
+    {
+        if(it->second == vertex1) return true;   
     }
     return false;
 }
